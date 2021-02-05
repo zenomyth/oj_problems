@@ -2,7 +2,7 @@
 #include <string.h>
 
 struct Node {
-    int child[26];
+    int child[256];
 };
 
 struct Node nodes[500000];
@@ -14,16 +14,17 @@ void count_substr(const char *str)
     int cur_node;
     int count = 0;
 
-    memset(nodes, 0, sizeof(nodes));
+    memset(&nodes[0], 0, sizeof(struct Node));
     new_node_index = 1;
     for (i = 0; str[i] != '\0'; ++i) {
         cur_node = 0;
         for (j = i; str[j] != '\0'; ++j) {
-            if (nodes[cur_node].child[str[j] - 'A'] == 0) {
-                nodes[cur_node].child[str[j] - 'A'] = new_node_index++;
+            if (nodes[cur_node].child[(unsigned char)str[j]] == 0) {
+                memset(&nodes[new_node_index], 0, sizeof(struct Node));
+                nodes[cur_node].child[(unsigned char)str[j]] = new_node_index++;
                 ++count;
             }
-            cur_node = nodes[cur_node].child[str[j] - 'A'];
+            cur_node = nodes[cur_node].child[(unsigned char)str[j]];
         }
     }
     printf("%d\n", count);

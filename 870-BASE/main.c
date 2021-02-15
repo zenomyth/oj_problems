@@ -5,6 +5,8 @@ int main(void)
     char line[64];
     char *p;
     int i;
+    int num[64];
+    int weight;
     int base_in, base_out;
     unsigned int val;
     char out_str[8];
@@ -13,19 +15,41 @@ int main(void)
     out_str[7] = '\0';
 
     while ((p = fgets(line, sizeof line, stdin)) != NULL) {
-        base_in = p[9] & 0xF;
-        if (p[8] == 0x31)
-            base_in += 10;
-        base_out = p[12] & 0xF;
-        if (p[11] == 0x31)
-            base_out += 10;
-        val = 0;
-        for (i = 0; i <= 6; ++i) {
-            val *= base_in;
+        for (i = 0; p[i] != '\0'; ++i) {
             if (p[i] & 0x40)
-                val += (p[i] & 0xF) + 9;
-            else if ((p[i] & 0x30) == 0x30)
-                val += p[i] & 0xF;
+                num[i] = (p[i] & 0xF) + 9;
+            else if ((line[i] & 0x30) == 0x30)
+                num[i] = p[i] & 0xF;
+            else
+                num[i] = -1;
+        }
+        --i;
+        while (num[i] == -1)
+            --i;
+        base_out = 0;
+        weight = 1;
+        while (num[i] != -1) {
+            base_out += num[i] * weight;
+            weight *= 10;
+            --i;
+        }
+        while (num[i] == -1)
+            --i;
+        base_in = 0;
+        weight = 1;
+        while (num[i] != -1) {
+            base_in += num[i] * weight;
+            weight *= 10;
+            --i;
+        }
+        while (num[i] == -1)
+            --i;
+        val = 0;
+        weight = 1;
+        while (i >= 0 && num[i] != -1) {
+            val += num[i] * weight;
+            weight *= base_in;
+            --i;
         }
         for (i = 6; i >= 0; --i) {
             digit = val % base_out;

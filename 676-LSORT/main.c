@@ -7,9 +7,10 @@ int main(void)
     int P[1000];
     int i;
     int j;
-    int k;
-    int x;
-    int cost[2][1001];
+    int x[1000];
+    int x1[1000];
+    int x2[1000];
+    int cost[2][1000];
     int idx_cur;
     int idx_next;
 
@@ -20,27 +21,28 @@ int main(void)
             scanf("%d", &P[i]);
         idx_cur = 0;
         idx_next = 1;
-        for (i = 0; i <= N; ++i)
+        for (i = 0; i < N; ++i) {
             cost[idx_cur][i] = 0;
+            x[P[i] - 1] = x1[P[i] - 1] = x2[P[i] - 1] = i + 1;
+        }
         for (i = 1; i <= N; ++i) {
             for (j = 0; j < N - i + 1; ++j) {
-                for (k = 0, x = 1; k < N; ++k) {
-                    if (P[k] < j + 1 || P[k] > j + i)
-                        ++x;
-                    if (P[k] == j + 1)
-                        break;
-                }
-                cost[idx_next][j] = cost[idx_cur][j + 1] + i * x;
+                if (i == 1)
+                    cost[idx_next][j] = i * x1[j];
+                else
+                    cost[idx_next][j] = cost[idx_cur][j + 1] + i * x1[j];
+            }
+            for (j = 0; j < N - i; ++j) {
+                if (x[j + i] < x[j])
+                    --x1[j];
             }
             for (j = i - 1; j < N; ++j) {
-                for (k = 0, x = 1; k < N; ++k) {
-                    if (P[k] < j - i + 2 || P[k] > j + 1)
-                        ++x;
-                    if (P[k] == j + 1)
-                        break;
-                }
-                if (cost[idx_next][j - i + 1] > cost[idx_cur][j - i + 1] + i * x)
-                    cost[idx_next][j - i + 1] = cost[idx_cur][j - i + 1] + i * x;
+                if (cost[idx_next][j - i + 1] > cost[idx_cur][j - i + 1] + i * x2[j])
+                    cost[idx_next][j - i + 1] = cost[idx_cur][j - i + 1] + i * x2[j];
+            }
+            for (j = i; j < N; ++j) {
+                if (x[j - i] < x[j])
+                    --x2[j];
             }
             idx_cur ^= 1;
             idx_next ^= 1;

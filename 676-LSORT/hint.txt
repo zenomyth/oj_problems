@@ -1,0 +1,2 @@
+Another DP problem
+State for each step can be considered as the i number sorted sequence starting from 1 .. N - i + 1.

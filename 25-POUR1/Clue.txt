@@ -1,0 +1,6 @@
+This issue can only be solved when c is integral multiple of gcd(a, b).
+The solution can be found by repeating the following steps:
+Source -> a
+a -> b
+b -> sink
+a and b are exchangable.

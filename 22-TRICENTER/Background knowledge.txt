@@ -1,0 +1,19 @@
+Heron's formula: A = sqrt(s * (s - a) * (s - b) * (s - c)), s is semi-perimeter
+Centroid is denoted as G
+Orthocenter is denoted as H
+Circumradius is denoted as R
+Circumdiameter is denoted as d
+Area is denoted as A
+GH is on Euler line
+GH = sqrt(4 * R^2 - 4 * (a^2 + b^2 + c^2) / 9)
+Distance from G to edges are denoted as ga, gb, gc.
+Since the area of AGB, BGC and CGA is the same, we have this formula: a * ga = b * gb = c * gc
+Law of sines: d = a / sin(A) = b / sin(B) = c / sin (C)
+Area formula with height: A = a * b * sin (C) / 2
+From the above: R = d / 2 = a * b * c / (4 * A)
+
+Further reading:
+Trilinear coordinates
+Straightedge and compass construction
+List of interactive geometry software
+Nine-point circle

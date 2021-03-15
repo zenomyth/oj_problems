@@ -1,0 +1,62 @@
+a * x + b * y = c
+
+y = - (x - x2) ^ 2 / (2 * (py - y2)) + (y2 + py) / 2
+y = - (x - x1) ^ 2 / (2 * (py - y1)) + (y1 + py) / 2
+
+(x - x1) ^ 2 / (2 * (py - y1)) - (x - x2) ^ 2 / (2 * (py - y2)) = (y1 - y2) / 2
+
+2 * (py - y2) * y = -(x - x2) ^ 2 + (y2 + py) * (py - y2)
+2 * (py - y1) * y = -(x - x1) ^ 2 + (y1 + py) * (py - y1)
+
+2 * (y2 - y1) * y = x2^2 - x1^2 - 2 * x * (x2 - x1) + y2^2 - y1^2
+
+2 * b * dxs * y = (x1 + x2) * dxs - 2 * x * dxs + (y1 + y2) * b * dxs
+
+2 * b * y = (x1 + x2) - 2 * x + (y1 + y2) * b
+
+2 * (c - a * x) = (x1 + x2) - 2 * x + (x1 + x2) * b ^ 2
+
+
+y = - (x - x2) ^ 2 / 2 * dy + (2 * y2 + dy) / 2
+
+
+- (xp - x2)^2 / (2 * (py-y2)) + (y2 + py) / 2 > - (xp - x1) ^ 2 / (2 * (py - y1)) + (y1 + py) / 2
+
+-dx^2 / 2dy + (2y2 + dy) / 2 > -(dx + dxs)^2 / 2(dy+dys) + (2y2-dys+dy)/2
+
+-dx^2/dy > -(dx+dxs)^2/(dy+dys) - dys
+
+-dx^2 > -(dx+dxs)^2 * dy/(dy+b*dxs) - b*dxs*dy
+
+-dx^2*(dy+b*dxs) > -(dx+dxs)^2 * dy - b*dxs*dy*(dy+b*dxs)
+
+-dx^2*(dy+b*dxs) > -(dx^2 + 2*dx*dxs + dxs^2) * dy - b*dxs*dy*(dy+b*dxs)
+
+dx^2*dy + dx^2*b*dxs < dx^2*dy + 2*dx*dxs*dy + dxs^2 * dy + b*dxs*dy^2 + b^2*dxs^2*dy
+
+dx^2*b*dxs < 2*dx*dxs*dy + dxs^2 * dy + b*dxs*dy^2 + b^2*dxs^2*dy
+
+if dxs > 0:
+dx^2*b < 2*dx*dy + dxs * dy + b*dy^2 + b^2*dxs*dy
+
+dx^2*b - b*dy^2 < 2*dx*dy + dxs * dy  + b^2*dxs*dy
+
+above = e->b * (dxp*dxp - dyp*dyp) <
+				dxs*dyp*(1.0+2.0*dxp/dxs + e->b*e->b);
+
+===================
+
+y = - (dx / dy) * (x - (2 * x1 + dx) / 2) + (2 * y1 + dy) / 2
+
+dx * x + dy * y - dx * (2 * x1 + dx) / 2 - dy * (2 * y1 + dy) / 2
+
+a = dx
+b = dy
+c = -(dx * x1 + dy * y1 + (dx ^ 2 + dy ^ 2) / 2)
+
+a1 * x + b1 * y = c1
+a2 * x + b2 * y = c2
+
+(c1 - a1 * x) * b2 = (c2 - a2 * x) * b1
+
+(a1 * b2 - a2 * b1) * x = c1 * b2 - c2 * b1

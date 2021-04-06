@@ -29,8 +29,13 @@ struct node_container {
     struct node_container *next;
 };
 
+struct node_queue_item {
+    struct rb_node *node;
+    int level;
+};
+
 struct node_queue {
-    struct rb_node *q[NODE_QUEUE_SIZE];
+    struct node_queue_item q[NODE_QUEUE_SIZE];
     int head;
     int tail;
 };
@@ -122,7 +127,7 @@ void print_tree_post_order(struct rb_node *node)
     printf("%d\n", node->key);
 }
 
-void enqueue(struct node_queue *q, struct rb_node *node)
+void enqueue(struct node_queue *q, struct rb_node *node, int level)
 {
     int tail;
     tail = q->tail + 1;
@@ -130,37 +135,163 @@ void enqueue(struct node_queue *q, struct rb_node *node)
         tail = 0;
     if (tail == q->head) /* queue full */
         return;
-    q->q[q->tail] = node;
+    q->q[q->tail].node = node;
+    q->q[q->tail].level = level;
     q->tail = tail;
 }
 
-struct rb_node *dequeue(struct node_queue *q)
+struct node_queue_item *dequeue(struct node_queue *q)
 {
-    struct rb_node *node;
+    struct node_queue_item *item;
     if (q->head == q->tail) /* queue empty */
         return NULL;
-    node = q->q[q->head];
+    item = &q->q[q->head];
     q->head = q->head + 1;
     if (q->head >= NODE_QUEUE_SIZE)
         q->head = 0;
-    return node;
+    return item;
 }
 
 void print_tree_level_order(struct rb_node *node)
 {
-    struct rb_node *head_node;
-    enqueue(&node_q, node);
-    while ((head_node = dequeue(&node_q)) != NULL) {
-        printf("%d\n", head_node->key);
-        if (head_node->child[0] != NULL)
-            enqueue(&node_q, head_node->child[0]);
-        if (head_node->child[1] != NULL)
-            enqueue(&node_q, head_node->child[1]);
+    struct node_queue_item *head_item;
+    int level;
+    enqueue(&node_q, node, 0);
+    level = 0;
+    while ((head_item = dequeue(&node_q)) != NULL) {
+        if (level != head_item->level) {
+            level = head_item->level;
+            printf("\n");
+        }
+        printf("%d ", head_item->node->key);
+        if (head_item->node->child[0] != NULL)
+            enqueue(&node_q, head_item->node->child[0], head_item->level + 1);
+        if (head_item->node->child[1] != NULL)
+            enqueue(&node_q, head_item->node->child[1], head_item->level + 1);
     }
 }
 
-void print_tree_by_shape(struct rb_node *node)
+/*
+*     2
+*     ├── 1
+*     └── 14
+*         ├── 8
+*         │   ├── 6
+*         │   │   ├── 3
+*         │   │   │   └── 4
+*         │   │   │       └── 5
+*         │   │   └── 7
+*         │   └── 11
+*         │       ├── 9
+*         │       │   └── 10
+*         │       └── 12
+*         │           └── 13
+*         └── 16
+*             ├── 15
+*             └── 20
+*                 └── 19
+*                     └── 17
+*                         └── 18
+**/
+
+void print_parent_connector_pre_order(struct rb_node *node, int last_level)
 {
+    if (node->parent == NULL)
+        return;
+    print_parent_connector_pre_order(node->parent, 0);
+    if (node == node->parent->child[0] && node->parent->child[1] != NULL) {
+        if (last_level)
+            printf("├── ");
+        else
+            printf("│   ");
+    }
+    else {
+        if (last_level)
+            printf("└── ");
+        else
+            printf("    ");
+    }
+}
+
+void print_tree_by_shape_fallen_pre_order(struct rb_node *node)
+{
+    if (node == NULL)
+        return;
+    print_parent_connector_pre_order(node, 1);
+    printf("%d\n", node->key);
+    print_tree_by_shape_fallen_pre_order(node->child[0]);
+    print_tree_by_shape_fallen_pre_order(node->child[1]);
+}
+
+/*
+ *      ┌─ 1
+ *    2─┤
+ *      │              ┌─ 3─┐
+ *      │              │    └─ 4─┐
+ *      │              │         └─ 5
+ *      │         ┌─ 6─┤
+ *      │         │    └─ 7
+ *      │    ┌─ 8─┤
+ *      │    │    │         ┌─10
+ *      │    │    │    ┌─ 9─┘
+ *      │    │    └─11─┤
+ *      │    │         └─12─┐
+ *      │    │              └─13
+ *      └─14─┤
+ *           │    ┌─15
+ *           └─16─┤
+ *                │         ┌─17─┐
+ *                │         │    └─18
+ *                │    ┌─19─┘
+ *                └─20─┘
+**/
+
+void print_parent_connector_in_order(struct rb_node *node, struct rb_node *child)
+{
+    if (node->parent == NULL)
+        return;
+    print_parent_connector_in_order(node->parent, node);
+    if (node == node->parent->child[0]) {
+        if (child == NULL)
+            printf("   ┌─");
+        else {
+            if (child == node->child[1])
+                printf("   │ ");
+            else
+                printf("     ");
+        }
+    }
+    else {
+        if (child == NULL)
+            printf("   └─");
+        else {
+            if (child == node->child[0])
+                printf("   │ ");
+            else
+                printf("     ");
+        }
+    }
+}
+
+void print_tree_by_shape_fallen_in_order(struct rb_node *node)
+{
+    if (node == NULL)
+        return;
+    print_tree_by_shape_fallen_in_order(node->child[0]);
+    print_parent_connector_in_order(node, NULL);
+    printf("%2d", node->key);
+    if (node->child[0] != NULL) {
+        if (node->child[1] != NULL)
+            printf("─┤");
+        else
+            printf("─┘");
+    }
+    else {
+        if (node->child[1] != NULL)
+            printf("─┐");
+    }
+    printf("\n");
+    print_tree_by_shape_fallen_in_order(node->child[1]);
 }
 
 void print_tree(struct rb_tree *tree)
@@ -168,7 +299,9 @@ void print_tree(struct rb_tree *tree)
     // print_tree_pre_order(tree->root);
     // print_tree_in_order(tree->root);
     // print_tree_post_order(tree->root);
-    print_tree_level_order(tree->root);
+    // print_tree_level_order(tree->root);
+    // print_tree_by_shape_fallen_pre_order(tree->root);
+    print_tree_by_shape_fallen_in_order(tree->root);
 }
 
 int main(void)

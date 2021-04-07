@@ -71,33 +71,105 @@ void release_node(struct rb_node *node)
     released_node_list = released_node;
 }
 
-void insert_from_node(struct rb_node *node, int key)
+struct rb_node * insert_from_node(struct rb_node *node, int key)
 {
     int side;
     if (key < node->key)
         side = 0;
     else if (key == node->key)
-        return;
+        return NULL;
     else
         side = 1;
     if (node->child[side] == NULL) {
         node->child[side] = allocate_node();
         node->child[side]->key = key;
         node->child[side]->parent = node;
+        return node->child[side];
     }
     else
-        insert_from_node(node->child[side], key);
+        return insert_from_node(node->child[side], key);
 }
 
 void insert(struct rb_tree *tree, int key)
 {
+    struct rb_node *node;
+    struct rb_node *parent;
+    struct rb_node *g_parent;
+    struct rb_node *uncle;
+    struct rb_node *gg_parent;
+    int side;
+
+    /* Normal insertion */
     if (tree->root == NULL) {
         tree->root = allocate_node();
         tree->root->key = key;
         tree->root->parent = NULL;
+        tree->root->color = BLACK;
         return;
     }
-    insert_from_node(tree->root, key);
+    node = insert_from_node(tree->root, key);
+    if (node == NULL)
+        return;
+
+    /* re-paint the tree */
+    node->color = RED;
+    do {
+        parent = node->parent;
+        /* Case 3: parent black */
+        if (parent->color == BLACK)
+            return;
+        g_parent = parent->parent;
+        /* Case 6: make sure root is black */
+        if (g_parent == NULL) {
+            parent->color = BLACK;
+            return;
+        }
+        side = (parent == g_parent->child[0]) ? 0 : 1;
+        uncle = g_parent->child[side ^ 1];
+        /* Case 1: Recursion from grand parent */
+        if (uncle != NULL && uncle->color == RED) {
+            parent->color = BLACK;
+            uncle->color = BLACK;
+            g_parent->color = RED;
+            node = g_parent;
+            continue;
+        }
+        /* Case 4: Current node and parent at different side */
+        if (node == parent->child[side ^ 1]) {
+            /* Side rotation */
+            g_parent->child[side] = node;
+            node->parent = g_parent;
+            parent->child[side ^ 1] = node->child[side];
+            if (node->child[side] != NULL)
+                node->child[side]->parent = parent;
+            node->child[side] = parent;
+            parent->parent = node;
+            node = parent;
+            parent = node->parent;
+        }
+        /* Case 5: Rotate parent to grand parent and re-paint */
+        /* Side ^ 1 rotation */
+        gg_parent = g_parent->parent;
+        if (gg_parent == NULL)
+            tree->root = parent;
+        else {
+            if (g_parent == gg_parent->child[0])
+                gg_parent->child[0] = parent;
+            else
+                gg_parent->child[1] = parent;
+        }
+        parent->parent = gg_parent;
+        g_parent->child[side] = parent->child[side ^ 1];
+        if (parent->child[side ^ 1] != NULL)
+            parent->child[side ^ 1]->parent = g_parent;
+        parent->child[side ^ 1] = g_parent;
+        g_parent->parent = parent;
+        g_parent->color = RED;
+        parent->color = BLACK;
+        return;
+    } while (node->parent != NULL);
+    /* Case 2: make sure root is black */
+    node->color = BLACK;
 }
 
 void print_tree_pre_order(struct rb_node *node)
@@ -253,22 +325,22 @@ void print_parent_connector_in_order(struct rb_node *node, struct rb_node *child
     print_parent_connector_in_order(node->parent, node);
     if (node == node->parent->child[0]) {
         if (child == NULL)
-            printf("   ┌─");
+            printf("    ┌─");
         else {
             if (child == node->child[1])
-                printf("   │ ");
+                printf("    │ ");
             else
-                printf("     ");
+                printf("      ");
         }
     }
     else {
         if (child == NULL)
-            printf("   └─");
+            printf("    └─");
         else {
             if (child == node->child[0])
-                printf("   │ ");
+                printf("    │ ");
             else
-                printf("     ");
+                printf("      ");
         }
     }
 }
@@ -279,7 +351,7 @@ void print_tree_by_shape_fallen_in_order(struct rb_node *node)
         return;
     print_tree_by_shape_fallen_in_order(node->child[0]);
     print_parent_connector_in_order(node, NULL);
-    printf("%2d", node->key);
+    printf("%2d%c", node->key, node->color == BLACK ? 'B' : 'R');
     if (node->child[0] != NULL) {
         if (node->child[1] != NULL)
             printf("─┤");

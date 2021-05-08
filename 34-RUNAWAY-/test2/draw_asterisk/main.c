@@ -84,11 +84,23 @@ void draw_line(HDC hdc, struct point_f *pf1, struct point_f *pf2)
 	LineTo(hdc, p.x, p.y);
 }
 
+void draw_polyline(HDC hdc, struct point_f *pf, int count)
+{
+	POINT p[201];
+	int i;
+	for (i = 0; i <= 200; ++i)
+		convert_point_to_pixel(&pf[i], &p[i]);
+	Polyline(hdc, p, 201);
+}
+
 void draw_plots(HDC hdc)
 {
 	struct point_f p1 = {-2, 3};
 	struct point_f p2 = {3, 1};
 	float k;
+	struct point_f p3, p4, p5;
+	struct point_f pa[201];
+	int i;
 
 	draw_point(hdc, &p1);
 	draw_point(hdc, &p2);
@@ -98,7 +110,23 @@ void draw_plots(HDC hdc)
 	// LineTo(hdc, midx + p2.x * unit, midy - p2.y * unit);
 
 	k = -(p2.x - p1.x) / (p2.y - p1.y);
-	printf("k=%f\n", k);
+	// printf("k=%f\n", k);
+	p3.x = (p1.x + p2.x) / 2;
+	p3.y = (p1.y + p2.y) / 2;
+	// p4.x = (p1.x + p3.x) / 2;
+	p4.x = p1.x;
+	p4.y = k * (p4.x - p3.x) + p3.y;
+	// p5.x = (p2.x + p3.x) / 2;
+	p5.x = p2.x;
+	p5.y = k * (p5.x - p3.x) + p3.y;
+	// draw_line(hdc, &p4, &p5);
+
+	for (i = 0; i <= 200; ++i) {
+		pa[i].x = p1.x + i * (p2.x - p1.x) / 200;
+		pa[i].y = k * (pa[i].x - p3.x) + p3.y;
+		pa[i].y += sqrtf((pa[i].x - p1.x) * (pa[i].x - p1.x) + (pa[i].y - p1.y) * (pa[i].y - p1.y));
+	}
+	draw_polyline(hdc, pa, 201);
 
 	/*for(i = 0; i < NUM; i++)
 	{

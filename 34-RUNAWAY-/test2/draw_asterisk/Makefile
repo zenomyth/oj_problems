@@ -4,7 +4,7 @@ BIN=a.exe
 
 CFLAGS=-O2 -std=c99 -Wall -Wextra
 # CFLAGS+=-mwindows
-CFLAGS+=-DUNICODE
+# CFLAGS+=-DUNICODE
 LDFLAGS=-lm
 LDFLAGS+=-static-libgcc
 # LDFLAGS+=-mwindows

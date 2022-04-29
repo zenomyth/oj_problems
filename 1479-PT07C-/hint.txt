@@ -1,1 +1,13 @@
-The diameter minimal span tree problem.
+The minimum diameter spanning tree (MDST, 最小直径生成树) problem.
+
+Find vertex 1-center (The point on some edge with minimal maximum distance to farthest vertex) of the graph.
+Find the shortest-path tree (最短路径树) from the vertex 1-center.
+
+Vertex 1-center: Find the minimum of lowest point in the saw-tooth curve for each edge according to ref/distance_from_points_on_edge_to_vertices.jpg
+
+Distance matrix: Floyd–Warshall algorithm
+
+Shortest path tree: Dijkstra’s algorithm
+
+!Not fit for this issue!
+Minimum spanning tree algorithm: Kruskal’s Algorithm, Prim’s Algorithm

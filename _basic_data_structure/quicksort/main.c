@@ -23,13 +23,11 @@ int partition(int *input, int lo, int hi)
         pivot = input[lo] < input[hi] ? input[lo] : input[hi];
     else if (input[lo] < pivot && input[hi] < pivot)
         pivot = input[lo] < input[hi] ? input[hi] : input[lo];
-    i = lo;
-    j = hi;
+    i = lo - 1;
+    j = hi + 1;
     while (1) {
-        while (input[i] < pivot)
-            ++i;
-        while (pivot < input[j])
-            --j;
+        do ++i; while (input[i] < pivot);
+        do --j; while (pivot < input[j]);
         if (i < j)
             swap(&input[i], &input[j]);
         else

@@ -1,0 +1,4 @@
+2022.05.02
+Got WA in the commit from last week. Can't find more data online. Think of the following actions to resolve the WA status:
+ * Rewrite the code in C++ to rule out the possibility of manually written sort and priority queue error.
+ * Generate random input and compare execution result with online solution.

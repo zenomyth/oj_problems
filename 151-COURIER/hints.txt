@@ -1,0 +1,4 @@
+Number of combinations with repetition
+https://en.wikipedia.org/wiki/Combination#Number_of_combinations_with_repetition
+
+Dynamic planning based on number of parcels delivered and the current city the courier is in.

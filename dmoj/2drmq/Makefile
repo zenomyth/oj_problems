@@ -1,11 +1,14 @@
-BIN := a.exe
+BIN := a.out
 SRC := $(wildcard *.cpp)
 OBJ := $(SRC:.cpp=.o)
+
+%.o : %.cpp
+	@$(CXX) -c $(CXXFLAGS) $< -o $@
 
 all: $(BIN)
 
 $(BIN) : $(OBJ)
-	$(CXX) -lstdc++ -o $@ $^
+	@$(CXX) -o $@ $^
 
 run: $(BIN)
 	@./$(BIN) < input.txt

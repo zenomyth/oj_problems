@@ -5,10 +5,13 @@
 
 using namespace std;
 
+void init(std::vector<std::vector<int>> arr);
+int query(int a, int b, int c, int d);
+
 int main()
 {
     string line;
-    vector< vector<int> > data;
+    vector<vector<int>> data;
     while (getline(cin, line)) {
         stringstream ss(line);
         int cell;
@@ -17,10 +20,9 @@ int main()
             vdata.push_back(cell);
         data.push_back(vdata);
     }
-    for (vector< vector<int> >::iterator it = data.begin(); it != data.end(); ++it) {
-        for (vector<int>::iterator it2 = it->begin(); it2 != it->end(); ++it2)
-            cout << *it2 << " ";
-        cout << endl;
-    }
+    init(data);
+    cout << query(0, 1, 0, 1) << endl;
+    cout << query(1, 1, 0, 1) << endl;
+    cout << query(0, 0, 1, 1) << endl;
     return 0;
 }

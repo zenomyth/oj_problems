@@ -1,7 +1,5 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <sstream>
 
 using namespace std;
 
@@ -10,19 +8,19 @@ int query(int a, int b, int c, int d);
 
 int main()
 {
-    string line;
-    vector<vector<int>> data;
-    while (getline(cin, line)) {
-        stringstream ss(line);
-        int cell;
-        vector<int> vdata;
-        while (ss >> cell)
-            vdata.push_back(cell);
-        data.push_back(vdata);
-    }
+    int n;
+	cin >> n;
+    vector<vector<int>> data(n, vector<int>(n));
+	for (int i = 0; i < n; ++i)
+		for (int j = 0; j < n; ++j)
+			cin >> data[i][j];
     init(data);
-    cout << query(0, 1, 0, 1) << endl;
-    cout << query(1, 1, 0, 1) << endl;
-    cout << query(0, 0, 1, 1) << endl;
+	int m;
+	cin >> m;
+	for (int i = 0; i < m; ++i) {
+		int a, b, c, d;
+		cin >> a >> b >> c >> d;
+		cout << query(a, b, c, d) << endl;
+	}
     return 0;
 }

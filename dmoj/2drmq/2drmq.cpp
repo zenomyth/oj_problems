@@ -15,10 +15,13 @@ void init(vector<vector<int>> arr)
 {
     n = arr.size();
     int i = 0;
-    for (vector<vector<int>>::iterator itvv = arr.begin(); itvv != arr.end(); ++itvv, ++i) {
+    for (auto& itvv : arr) {
         int j = 0;
-        for (vector<int>::iterator it = itvv->begin(); it != itvv->end(); ++it, ++j)
-            pow2_rmq[0][0][i][j] = *it;
+        for (auto& it : itvv) {
+            pow2_rmq[0][0][i][j] = it;
+            ++j;
+        }
+        ++i;
     }
     for (int l = 0; pow2[l + 1] <= n; ++l)
     for (int i = 0; i < n; ++i)

@@ -40,6 +40,6 @@ int main()
 		cin >> a >> b >> c >> d;
 		cout << query(a, b, c, d) << endl;
 	}
-    print_pow2_rmq();
+    // print_pow2_rmq();
     return 0;
 }

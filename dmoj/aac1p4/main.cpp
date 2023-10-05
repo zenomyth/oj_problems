@@ -17,9 +17,14 @@ int pool[MAX_N];
 
 bool find_matching_index(int a)
 {
-    // for (int i = 0; i < ol[a].len; ++i) {
-    for (int i = ol[a].len - 1; i >= 0; --i) {
-        if (pool[ol[a].beg + i] >= l && pool[ol[a].beg + i] <= r)
+    int ll = ol[a].beg, rr = ol[a].beg + ol[a].len - 1, m;
+    while (ll <= rr) {
+        m = (ll + rr) / 2;
+        if (pool[m] < l)
+            ll = m + 1;
+        else if (pool[m] > r)
+            rr = m - 1;
+        else
             return true;
     }
     return false;

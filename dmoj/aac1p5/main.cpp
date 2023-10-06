@@ -22,24 +22,21 @@ struct PathFromNode {
 
 void find_path_from_node(int root, int parent, int parity)
 {
+    if (parity)
+        subpath[root].odd += 1;
+    else
+        subpath[root].even += 1;
     for (struct Node *p = conn[root]; p != NULL; p = p->next) {
         if (p->dest == parent)
             continue;
         find_path_from_node(p->dest, root, p->parity ^ parity);
-        subpath[root].pass_in_parity = parity;
-        if (p->parity) {
-            subpath[root].odd += subpath[p->dest].even + 1;
-            subpath[root].even += subpath[p->dest].odd;
-        }
-        else {
-            subpath[root].odd += subpath[p->dest].odd;
-            subpath[root].even += subpath[p->dest].even + 1;
-        }
+        subpath[root].odd += subpath[p->dest].odd;
+        subpath[root].even += subpath[p->dest].even;
     }
 }
 
 int64_t calc_diff(int64_t odd, int64_t even) {
-    int64_t t_odd = odd * (even + 1);
+    int64_t t_odd = odd * even;
     int64_t t_even = n * (n - 1) / 2 - t_odd;
     return t_odd < t_even ? t_even - t_odd : t_odd - t_even;
 }
@@ -70,14 +67,6 @@ int main()
     for (int i = 2; i <= n; ++i) {
         int64_t odd = subpath[1].odd - subpath[i].odd + subpath[i].even;
         int64_t even = subpath[1].even - subpath[i].even + subpath[i].odd;
-        if (subpath[i].pass_in_parity) {
-            --odd;
-            ++even;
-        }
-        else {
-            ++odd;
-            --even;
-        }
         int64_t m1 = calc_diff(odd, even);
         if (m1 < m)
             m = m1;

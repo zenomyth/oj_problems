@@ -37,7 +37,7 @@ void find_path_from_node(int root, int parent, int parity)
 
 int64_t calc_diff(int64_t odd, int64_t even) {
     int64_t t_odd = odd * even;
-    int64_t t_even = n * (n - 1) / 2 - t_odd;
+    int64_t t_even = (int64_t)n * ((int64_t)n - 1) / 2 - t_odd;
     return t_odd < t_even ? t_even - t_odd : t_odd - t_even;
 }
 

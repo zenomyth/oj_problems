@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdint>
 
 #define N 200000
 
@@ -13,14 +14,35 @@ struct Node {
 struct Node *conn[N + 1];
 struct Node pool[N * 2];
 struct Node *watermark = pool;
-int visited[N + 1];
 struct PathFromNode {
-    int node;
-    int odd;
-    int even;
-} q[N];
-int head = 0;
-int tail = 0;
+    int64_t odd;
+    int64_t even;
+    int pass_in_parity;
+} subpath[N + 1];
+
+void find_path_from_node(int root, int parent, int parity)
+{
+    for (struct Node *p = conn[root]; p != NULL; p = p->next) {
+        if (p->dest == parent)
+            continue;
+        find_path_from_node(p->dest, root, p->parity ^ parity);
+        subpath[root].pass_in_parity = parity;
+        if (p->parity) {
+            subpath[root].odd += subpath[p->dest].even + 1;
+            subpath[root].even += subpath[p->dest].odd;
+        }
+        else {
+            subpath[root].odd += subpath[p->dest].odd;
+            subpath[root].even += subpath[p->dest].even + 1;
+        }
+    }
+}
+
+int64_t calc_diff(int64_t odd, int64_t even) {
+    int64_t t_odd = odd * (even + 1);
+    int64_t t_even = n * (n - 1) / 2 - t_odd;
+    return t_odd < t_even ? t_even - t_odd : t_odd - t_even;
+}
 
 int main()
 {
@@ -39,33 +61,27 @@ int main()
         conn[v] = watermark;
         ++watermark;
     }
-    int odd = 0, even = 0;
-    q[tail].node = 1;
-    q[tail].odd = 0;
-    q[tail].even = 0;
-    ++tail;
-    while (head != tail) {
-        struct PathFromNode *top = &q[head++];
-        visited[top->node] = 1;
-        cout << top->node << " " << top->odd << " " << top->even << " " << endl;
-        for (struct Node *p = conn[top->node]; p != NULL; p = p->next) {
-            if (visited[p->dest])
-                continue;
-            q[tail].node = p->dest;
-            if (p->parity) {
-                q[tail].odd = top->even + 1;
-                q[tail].even = top->odd;
-            }
-            else {
-                q[tail].odd = top->odd;
-                q[tail].even = top->even + 1;
-            }
-            odd += q[tail].odd;
-            even += q[tail].even;
-            ++tail;
-        }
+    if (n == 1) {
+        cout << 0 << endl;
+        return 0;
     }
-    cout << odd << endl;
-    cout << even << endl;
+    find_path_from_node(1, 0, 0);
+    int64_t m = calc_diff(subpath[1].odd, subpath[1].even);
+    for (int i = 2; i <= n; ++i) {
+        int64_t odd = subpath[1].odd - subpath[i].odd + subpath[i].even;
+        int64_t even = subpath[1].even - subpath[i].even + subpath[i].odd;
+        if (subpath[i].pass_in_parity) {
+            --odd;
+            ++even;
+        }
+        else {
+            ++odd;
+            --even;
+        }
+        int64_t m1 = calc_diff(odd, even);
+        if (m1 < m)
+            m = m1;
+    }
+    cout << m << endl;
     return 0;
 }

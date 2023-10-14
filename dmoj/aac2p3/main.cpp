@@ -13,6 +13,8 @@ char chizu[2][N][M];
 
 bool is_connected(int idx, int x, int y)
 {
+    if (x < 0 || y < 0)
+        return false;
     // cout << x << " " << y << endl;
     // for (int i = 0; i < x; ++i) {
         // for (int j = 0; j < y; ++j)
@@ -75,12 +77,68 @@ int find_max_balloons()
     return count;
 }
 
+int find_max_balloons_2()
+{
+    if (!is_connected(0, n, m))
+        return 0;
+    int idx = 0, idx2 = 1;
+    for (int i = 0; i < n - 1; ++i)
+        for (int j = 0; j < m - 1; ++j) {
+            if (chizu[idx][i][j] == 'X' || chizu[idx][i][j + 1] == 'X' || chizu[idx][i + 1][j] == 'X' || chizu[idx][i + 1][j + 1] == 'X')
+                chizu[idx2][i][j] = 'X';
+            else
+                chizu[idx2][i][j] = 'O';
+        }
+    idx ^= 1;
+    idx2 ^= 1;
+    if (!is_connected(idx, n - 1, m - 1))
+        return 1;
+    int inc = 1;
+    while (true) {
+        for (int i = 0; i < n - inc; ++i)
+            for (int j = 0; j < m - inc; ++j) {
+                if (chizu[idx][i][j] == 'X' || chizu[idx][i][j + inc] == 'X' || chizu[idx][i + inc][j] == 'X' || chizu[idx][i + inc][j + inc] == 'X')
+                    chizu[idx2][i][j] = 'X';
+                else
+                    chizu[idx2][i][j] = 'O';
+            }
+        idx ^= 1;
+        idx2 ^= 1;
+        if (!is_connected(idx, n - inc * 2, m - inc * 2)) {
+            idx ^= 1;
+            idx2 ^= 1;
+            break;
+        }
+        inc *= 2;
+    }
+    int inc1 = inc / 2;
+    while (inc1 > 0) {
+        for (int i = 0; i < n - inc1; ++i)
+            for (int j = 0; j < m - inc1; ++j) {
+                if (chizu[idx][i][j] == 'X' || chizu[idx][i][j + inc1] == 'X' || chizu[idx][i + inc1][j] == 'X' || chizu[idx][i + inc1][j + inc1] == 'X')
+                    chizu[idx2][i][j] = 'X';
+                else
+                    chizu[idx2][i][j] = 'O';
+            }
+        idx ^= 1;
+        idx2 ^= 1;
+        if (is_connected(idx, n - inc - inc1, m - inc - inc1))
+            inc += inc1;
+        else {
+            idx ^= 1;
+            idx2 ^= 1;
+        }
+        inc1 /= 2;
+    }
+    return inc + 1;
+}
+
 int main()
 {
     cin >> n >> m;
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < m; ++j)
             cin >> chizu[0][i][j];
-    cout << find_max_balloons() << endl;
+    cout << find_max_balloons_2() << endl;
     return 0;
 }

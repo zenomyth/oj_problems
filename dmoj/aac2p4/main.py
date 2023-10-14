@@ -11,4 +11,4 @@ for x in range(t):
     print(a[n - 1], end = " ")
     for xx in range(1, n - 1):
         print(a[xx], end = " ")
-    print(a[0]);
+    print(a[0])

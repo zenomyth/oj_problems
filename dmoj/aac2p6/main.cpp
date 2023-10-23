@@ -10,52 +10,68 @@ struct list_item {
     struct list_item *next;
 };
 struct list_item *al[N + 1], pool[N * 2], *wm = pool;
-int parent[N + 1];
-int has_child[N + 1];
+struct tree_node {
+    int v;
+    struct tree_node *p;
+    struct tree_node *c;
+    struct tree_node *s;
+};
+struct tree_node *root, pool_tree[N], *wm_tree = pool_tree, *flat[N + 1];
 int tp[N + 1];
 
-void assign_parent(int r)
+void build_tree(struct tree_node *r)
 {
-    struct list_item *p = al[r];
-    while (p != NULL) {
-        if (p->v != 1 && parent[p->v] == 0) {
-            parent[p->v] = r;
-            has_child[r] = 1;
-            assign_parent(p->v);
+    struct list_item *e = al[r->v];
+    while (e != NULL) {
+        if (r->p == NULL || e->v != r->p->v) {
+            struct tree_node *c = wm_tree++;
+            c->v = e->v;
+            c->p = r;
+            c->c = NULL;
+            c->s = r->c;
+            r->c = c;
+            flat[c->v] = c;
+            build_tree(c);
         }
-        p = p->next;
+        e = e->next;
     }
 }
 
 void preprocess()
 {
-    assign_parent(1);
+    root = wm_tree++;
+    root->v = 1;
+    root->p = NULL;
+    root->c = NULL;
+    root->s = NULL;
+    flat[1] = root;
+    build_tree(root);
     // for (int i = 1; i <= n; ++i)
-        // printf("%d -> %d\n", i, parent[i]);
+        // printf("%d\n", flat[i]->v);
 }
 
 int find_min_time_naive()
 {
     int t = 2147483647;
     for (int i = 1; i <= n; ++i) {
-        if (has_child[i])
+        if (flat[i]->c != NULL)
             continue;
         int tt = 0;
-        for (int j = i; j != 1; j = parent[j])
-            tp[j] = 1;
+        for (struct tree_node *node = flat[i]; node != root; node = node->p)
+            tp[node->v] = 1;
         for (int j = 0; j < x; ++j) {
             if (xa[j] == 1)
                 continue;
-            for (int k = xa[j]; k != 1; k = parent[k]) {
-                if (tp[k] == 1)
+            for (struct tree_node *node = flat[xa[j]]; node != root; node = node->p) {
+                if (tp[node->v] == 1)
                     break;
                 ++tt;
             }
             if (tt >= t)
                 break;
         }
-        for (int j = i; j != 1; j = parent[j])
-            tp[j] = 0;
+        for (struct tree_node *node = flat[i]; node != root; node = node->p)
+            tp[node->v] = 0;
         if (tt < t)
             t = tt;
         if (t == 0)

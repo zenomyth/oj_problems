@@ -17,7 +17,6 @@ struct tree_node {
     struct tree_node *s;
 };
 struct tree_node *root, pool_tree[N], *wm_tree = pool_tree, *flat[N + 1];
-int tp[N + 1];
 
 void build_tree(struct tree_node *r)
 {
@@ -46,12 +45,11 @@ void preprocess()
     root->s = NULL;
     flat[1] = root;
     build_tree(root);
-    // for (int i = 1; i <= n; ++i)
-        // printf("%d\n", flat[i]->v);
 }
 
 int find_min_time_naive()
 {
+    static int tp[N + 1];
     int t = 2147483647;
     for (int i = 1; i <= n; ++i) {
         if (flat[i]->c != NULL)
@@ -80,6 +78,34 @@ int find_min_time_naive()
     return t;
 }
 
+void find_max_time_saved(int *fcnt, struct tree_node *r, int t_sum, int *t_saved)
+{
+    if (r->c == NULL || (r != root && fcnt[r->v] == 0)) {
+        if (t_sum > *t_saved)
+            *t_saved = t_sum;
+        return;
+    }
+    for (struct tree_node *node = r->c; node != NULL; node = node->s)
+        find_max_time_saved(fcnt, node, t_sum + fcnt[node->v],t_saved);
+}
+
+int find_min_time_dfs()
+{
+    static int fcnt[N + 1];
+    int t = 0;
+    for (int i = 1; i <= n; ++i)
+        fcnt[i] = 0;
+    for (int i = 0; i < x; ++i) {
+        for (struct tree_node *node = flat[xa[i]]; node != root; node = node->p) {
+            ++fcnt[node->v];
+            ++t;
+        }
+    }
+    int t_saved = 0;
+    find_max_time_saved(fcnt, root, 0, &t_saved);
+    return t - t_saved;
+}
+
 int main()
 {
     scanf("%d %d", &n, &q);
@@ -100,7 +126,7 @@ int main()
         scanf("%d", &x);
         for (int j = 0; j < x; ++j)
             scanf("%d", &xa[j]);
-        printf("%d\n", find_min_time_naive());
+        printf("%d\n", find_min_time_dfs());
     }
     return 0;
 }

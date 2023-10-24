@@ -130,6 +130,32 @@ long long find_min_time_dfs_2()
     return t - t_saved;
 }
 
+long long process__partial_optimal(struct tree_node *r, int *fcnt, long long *t, int level)
+{
+    long long inc = 0;
+    if (fcnt[r->v] == 1)
+        *t += (long long)level;
+    for (struct tree_node *node = r->c; node != NULL; node = node->s) {
+        long long inc1 = process__partial_optimal(node, fcnt, t, level + 1);
+        if (inc1 > inc)
+            inc = inc1;
+        fcnt[r->v] += fcnt[node->v];
+    }
+    return inc + (long long)fcnt[r->v];
+}
+
+long long find_min_time_partial_optimal()
+{
+    static int fcnt[N + 1];
+    for (int i = 1; i <= n; ++i)
+        fcnt[i] = 0;
+    for (int i = 0; i < x; ++i)
+        fcnt[xa[i]] = 1;
+    long long t = 0, t_saved = 0;
+    t_saved = process__partial_optimal(root, fcnt, &t, 0);
+    return t - (t_saved - (long long)x);
+}
+
 int main()
 {
     scanf("%d %d", &n, &q);
@@ -150,7 +176,8 @@ int main()
         scanf("%d", &x);
         for (int j = 0; j < x; ++j)
             scanf("%d", &xa[j]);
-        printf("%lld\n", find_min_time_dfs_2());
+        // printf("%lld\n", find_min_time_dfs_2());
+        printf("%lld\n", find_min_time_partial_optimal());
     }
     return 0;
 }

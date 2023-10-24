@@ -47,14 +47,14 @@ void preprocess()
     build_tree(root);
 }
 
-int find_min_time_naive()
+long long find_min_time_naive()
 {
     static int tp[N + 1];
-    int t = 2147483647;
+    long long t = 2147483647;
     for (int i = 1; i <= n; ++i) {
         if (flat[i]->c != NULL)
             continue;
-        int tt = 0;
+        long long tt = 0;
         for (struct tree_node *node = flat[i]; node != root; node = node->p)
             tp[node->v] = 1;
         for (int j = 0; j < x; ++j) {
@@ -78,7 +78,7 @@ int find_min_time_naive()
     return t;
 }
 
-void find_max_time_saved(int *fcnt, struct tree_node *r, int t_sum, int *t_saved)
+void find_max_time_saved(int *fcnt, struct tree_node *r, long long t_sum, long long *t_saved)
 {
     if (r->c == NULL || (r != root && fcnt[r->v] == 0)) {
         if (t_sum > *t_saved)
@@ -86,13 +86,13 @@ void find_max_time_saved(int *fcnt, struct tree_node *r, int t_sum, int *t_saved
         return;
     }
     for (struct tree_node *node = r->c; node != NULL; node = node->s)
-        find_max_time_saved(fcnt, node, t_sum + fcnt[node->v],t_saved);
+        find_max_time_saved(fcnt, node, t_sum + (long long)fcnt[node->v],t_saved);
 }
 
-int find_min_time_dfs()
+long long find_min_time_dfs()
 {
     static int fcnt[N + 1];
-    int t = 0;
+    long long t = 0;
     for (int i = 1; i <= n; ++i)
         fcnt[i] = 0;
     for (int i = 0; i < x; ++i) {
@@ -101,7 +101,31 @@ int find_min_time_dfs()
             ++t;
         }
     }
-    int t_saved = 0;
+    long long t_saved = 0;
+    find_max_time_saved(fcnt, root, 0, &t_saved);
+    return t - t_saved;
+}
+
+void fill_in_feed_ground(struct tree_node *r, int *fcnt, long long *t, int level)
+{
+    if (fcnt[r->v] == 1)
+        *t += (long long)level;
+    for (struct tree_node *node = r->c; node != NULL; node = node->s) {
+        fill_in_feed_ground(node, fcnt, t, level + 1);
+        fcnt[r->v] += fcnt[node->v];
+    }
+}
+
+long long find_min_time_dfs_2()
+{
+    static int fcnt[N + 1];
+    long long t = 0;
+    for (int i = 1; i <= n; ++i)
+        fcnt[i] = 0;
+    for (int i = 0; i < x; ++i)
+        fcnt[xa[i]] = 1;
+    fill_in_feed_ground(root, fcnt, &t, 0);
+    long long t_saved = 0;
     find_max_time_saved(fcnt, root, 0, &t_saved);
     return t - t_saved;
 }
@@ -126,7 +150,7 @@ int main()
         scanf("%d", &x);
         for (int j = 0; j < x; ++j)
             scanf("%d", &xa[j]);
-        printf("%d\n", find_min_time_dfs());
+        printf("%lld\n", find_min_time_dfs_2());
     }
     return 0;
 }

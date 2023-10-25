@@ -1,0 +1,9 @@
+Range minimun query
+	DMOJ - 2drmq
+
+Binary indexed tree (Fenwick tree)
+	DMOJ - aac1p6
+	DMOJ - acc2p6
+
+Heavy-light decomposition
+	DMOJ - acc2p6

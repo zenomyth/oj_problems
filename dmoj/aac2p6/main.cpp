@@ -16,7 +16,8 @@ int depth[N + 1];
 int head[N + 1];
 int len_from_head[N + 1];
 int pos[N], next_pos = 0;
-int fenwick[N];
+long long fenwick1[N];
+long long fenwick2[N];
 
 int calc_weight_and_depth(int v)
 {
@@ -61,34 +62,64 @@ void preprocess()
         // printf("%d: d=%d, h=%d, p=%d, head=%d, pos=%d\n", i, depth[i], heavy[i], parent[i], head[i], pos[i]);
 }
 
-void fenwick_add(int v, int val)
+template<class T>
+void fenwick_add(T *fw, int start, int len, int idx, T val)
+{
+    T *fw1 = fw + start - 1;
+    int idx1 = idx - start + 1;
+    while (idx1 <= len) {
+        *(fw1 + idx1) += val;
+        idx1 += idx1 & -idx1;
+    }
+}
+
+template<class T>
+T fenwick_query(T *fw, int start, int idx)
+{
+    T val = T(0);
+    T *fw1 = fw + start - 1;
+    int idx1 = idx - start + 1;
+    while (idx1 > 0) {
+        val += *(fw1 + idx1);
+        idx1 -= idx1 & -idx1;
+    }
+    return val;
+}
+
+template<class T>
+void fenwick_add_range(T *fw1, T *fw2, int start, int len, int l, int r, T val)
+{
+    fenwick_add(fw1, start, len, l, val);
+    fenwick_add(fw1, start, len, r + 1, T(-val));
+    fenwick_add(fw2, start, len, l, T(val * (l - 1)));
+    fenwick_add(fw2, start, len, r + 1, T(-val * r));
+}
+
+template<class T>
+T fenwick_query_range(T *fw1, T *fw2, int start, int idx)
+{
+    return fenwick_query(fw1, start, idx) * idx - fenwick_query(fw2, start, idx);
+}
+
+void hld_add(int v, long long val)
 {
     int h = head[v];
-    while (true) {
-        int beg = pos[h];
-        int fpos = pos[v] - beg + 1;
-        while (fpos > 0) {
-            fenwick[beg - 1 + fpos] += val;
-            fpos -= fpos & (-fpos);
-        }
-        if (h == 1)
-            break;
+    while (h != 1) {
+        fenwick_add_range(fenwick1, fenwick2, pos[h], len_from_head[h], pos[h], pos[v], val);
         v = parent[h];
         h = head[v];
     }
 }
 
-int fenwick_query(int v)
+long long hld_query(int v)
 {
-    int val = 0;
+    long long val = 0;
     int h = head[v];
-    int beg = pos[h];
-    int fpos = pos[v] - beg + 1;
-    while (fpos <= len_from_head[h]) {
-        val += fenwick[beg - 1 + fpos];
-        fpos += fpos & (-fpos);
+    while (h != 1) {
+        val += fenwick_query_range(fenwick1, fenwick2, pos[h], pos[v]);
+        v = parent[h];
+        h = head[v];
     }
-    // printf("query(%d)=%d\n", v, val);
     return val;
 }
 
@@ -97,21 +128,34 @@ long long query_min_time()
     long long t = 0, ts = 0;
     for (int i = 0; i < x; ++i) {
         t += (long long)depth[xa[i]];
-        fenwick_add(xa[i], 1);
+        hld_add(xa[i], 1);
     }
     // for (int i = 0; i < n; ++i)
         // printf("f[%d]=%d\n", i, fenwick[i]);
     for (int i = 0; i < x; ++i) {
-        long long ts1 = 0;
-        for (int v = xa[i]; v != 1; v = parent[v])
-            ts1 += (long long)fenwick_query(v);
+        long long ts1 = hld_query(xa[i]);
         if (ts1 > ts)
             ts = ts1;
     }
     // printf("%lld %lld\n", t, ts);
     for (int i = 0; i < x; ++i)
-        fenwick_add(xa[i], -1);
+        hld_add(xa[i], -1);
     return t - ts;
+}
+
+void fenwick_range_op_test()
+{
+    long long a[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int dim = int(sizeof(a) / sizeof(a[0]));
+    long long fa[20], fb[20];
+    for (int i = 0; i < dim; ++i)
+        fa[i] = fb[i] = 0;
+    // for (int i = 0; i < dim; ++i)
+        // fenwick_add(fa, 0, dim, i, a[i]);
+    for (int i = 0; i < dim; ++i)
+        fenwick_add_range(fa, fb, 0, dim, i, i, a[i]);
+    fenwick_add_range(fa, fb, 0, dim, 0, 9, (long long)100);
+    printf("sum=%lld\n", fenwick_query_range(fa, fb, 0, 9));
 }
 
 int main()
@@ -136,5 +180,6 @@ int main()
             scanf("%d", &xa[j]);
         printf("%lld\n", query_min_time());
     }
+    // fenwick_range_op_test();
     return 0;
 }

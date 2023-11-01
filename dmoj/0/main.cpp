@@ -1,9 +1,9 @@
-#include <iostream>
+#include <cstdio>
 
 using namespace std;
 
 int main()
 {
-    cout << "Enjoy!" << endl;
+    printf("Enjoy!\n");
     return 0;
 }

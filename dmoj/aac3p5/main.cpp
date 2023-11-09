@@ -22,10 +22,30 @@ struct edge {
 int edges_size = 0;
 vertex dsu_parent[N][N];
 int dsu_size[N][N];
+int start_pos;
 
 void find_all_edges()
 {
-    for (int i = 0; i < n; ++i) {
+    start_pos = 0;
+    while (start_pos < m && chizu[0][start_pos] == '.')
+        ++start_pos;
+    if (start_pos == m)
+        return;
+    while (start_pos < m) {
+        int pos = start_pos + 1;
+        while (pos < m && chizu[0][pos] == '.')
+            ++pos;
+        if (pos == m)
+            break;
+        edges[edges_size].v1.x = 0;
+        edges[edges_size].v1.y = start_pos;
+        edges[edges_size].v2.x = 0;
+        edges[edges_size].v2.y = pos;
+        edges[edges_size].len = INF;
+        ++edges_size;
+        start_pos = pos;
+    }
+    for (int i = 1; i < n; ++i) {
         int j = 0;
         while (j < m && chizu[i][j] == '.')
             ++j;
@@ -98,19 +118,14 @@ void dsu_union_sets(vertex v1, vertex v2)
 
 void query_connectivity(int conoe_len)
 {
+    vertex vs = dsu_find_set({0, start_pos});
     for (int i = 0; i < m; ++i) {
         if (chizu[n - 1][i] == '.' || canoe_len_support[i] != -1)
             continue;
         vertex vi = dsu_find_set({n - 1, i});
-        for (int j = 0; j < m; ++j) {
-            if (chizu[0][j] == '.')
-                continue;
-            vertex vj = dsu_find_set({0, j});
-            if (vi.x == vj.x && vi.y == vj.y) {
-                canoe_len_support[i] = conoe_len;
-                --unresolved_count;
-                break;
-            }
+        if (vi.x == vs.x && vi.y == vs.y) {
+            canoe_len_support[i] = conoe_len;
+            --unresolved_count;
         }
     }
 }
@@ -123,7 +138,7 @@ void build_and_query_dsu()
         if (chizu[n - 1][i] == '.')
             --unresolved_count;
     }
-    if (unresolved_count == 0)
+    if (unresolved_count == 0 || start_pos == m)
         return;
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < m; ++j)

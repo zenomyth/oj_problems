@@ -7,3 +7,6 @@ Binary indexed tree (Fenwick tree)
 
 Heavy-light decomposition
 	DMOJ - acc2p6
+
+Disjoint Set Union
+	DMOJ - aac3p5

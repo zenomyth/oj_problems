@@ -1,134 +1,154 @@
 #include <cstdio>
-#include <queue>
+#include <algorithm>
 
 #define N 2000
 #define INF 2001
 
 using namespace std;
 
-short n, m;
+int n, m;
 char chizu[N + 1][N + 1];
-short canoe_len_support[N];
-short unresolved_count;
-struct link {
-    short n;
-    short e;
-    short s;
-    short w;
-} chizua[N][N];
-short visit[N][N];
-short visit_flag = 1;
+int canoe_len_support[N];
+int unresolved_count;
+struct vertex {
+    int x;
+    int y;
+};
+struct edge {
+    vertex v1;
+    vertex v2;
+    int len;
+} edges[N * N * 2];
+int edges_size = 0;
+vertex dsu_parent[N][N];
+int dsu_size[N][N];
 
-void calc_access()
+void find_all_edges()
 {
-    for (short i = 0; i < n; ++i) {
-        short j = 0;
+    for (int i = 0; i < n; ++i) {
+        int j = 0;
         while (j < m && chizu[i][j] == '.')
             ++j;
-        if (j == m)
-            continue;
-        chizua[i][j].w = INF;
         while (j < m) {
-            short pos = j + 1;
+            int pos = j + 1;
             while (pos < m && chizu[i][pos] == '.')
                 ++pos;
-            if (pos == m) {
-                chizua[i][j].e = INF;
+            if (pos == m)
                 break;
-            }
-            else {
-                chizua[i][j].e = pos;
-                chizua[i][pos].w = j;
-                j = pos;
-            }
+            edges[edges_size].v1.x = i;
+            edges[edges_size].v1.y = j;
+            edges[edges_size].v2.x = i;
+            edges[edges_size].v2.y = pos;
+            edges[edges_size].len = pos - j == 1 ? INF : pos - j - 1;
+            ++edges_size;
+            j = pos;
         }
     }
-    for (short i = 0; i < m; ++i) {
-        short j = 0;
+    for (int i = 0; i < m; ++i) {
+        int j = 0;
         while (j < n && chizu[j][i] == '.')
             ++j;
-        if (j == n)
-            continue;
-        chizua[j][i].n = INF;
         while (j < n) {
-            short pos = j + 1;
+            int pos = j + 1;
             while (pos < n && chizu[pos][i] == '.')
                 ++pos;
-            if (pos == n) {
-                chizua[j][i].s = INF;
+            if (pos == n)
+                break;
+            edges[edges_size].v1.x = j;
+            edges[edges_size].v1.y = i;
+            edges[edges_size].v2.x = pos;
+            edges[edges_size].v2.y = i;
+            edges[edges_size].len = pos - j == 1 ? INF : pos - j - 1;
+            ++edges_size;
+            j = pos;
+        }
+    }
+    struct {
+        bool operator()(const edge &a, const edge &b) const { return a.len > b.len; }
+    } order_edge_by_len_rev;
+    sort(&edges[0], &edges[edges_size], order_edge_by_len_rev);
+    // for (int i = 0; i < edges_size; ++i)
+        // printf("%d(%d): %d %d <> %d %d\n", i, edges[i].len, edges[i].v1.x, edges[i].v1.y, edges[i].v2.x, edges[i].v2.y);
+}
+
+void dsu_make_set(vertex v)
+{
+    dsu_parent[v.x][v.y] = v;
+    dsu_size[v.x][v.y] = 1;
+}
+
+vertex dsu_find_set(vertex v)
+{
+    if (dsu_parent[v.x][v.y].x == v.x && dsu_parent[v.x][v.y].y == v.y)
+        return v;
+    return dsu_parent[v.x][v.y] = dsu_find_set(dsu_parent[v.x][v.y]);
+}
+
+void dsu_union_sets(vertex v1, vertex v2)
+{
+    v1 = dsu_find_set(v1);
+    v2 = dsu_find_set(v2);
+    if (v1.x != v2.x || v1.y != v2.y) {
+        if (dsu_size[v1.x][v1.y] < dsu_size[v2.x][v2.y])
+            swap(v1, v2);
+        dsu_parent[v2.x][v2.y] = v1;
+        dsu_size[v1.x][v1.y] += dsu_size[v2.x][v2.y];
+    }
+}
+
+void query_connectivity(int conoe_len)
+{
+    for (int i = 0; i < m; ++i) {
+        if (chizu[n - 1][i] == '.' || canoe_len_support[i] != -1)
+            continue;
+        vertex vi = dsu_find_set({n - 1, i});
+        for (int j = 0; j < m; ++j) {
+            if (chizu[0][j] == '.')
+                continue;
+            vertex vj = dsu_find_set({0, j});
+            if (vi.x == vj.x && vi.y == vj.y) {
+                canoe_len_support[i] = conoe_len;
+                --unresolved_count;
                 break;
             }
-            else {
-                chizua[j][i].s = pos;
-                chizua[pos][i].n = j;
-                j = pos;
-            }
         }
     }
 }
 
-void add_to_visit_queue(queue<pair<short, short>> &todo, short x, short y)
+void build_and_query_dsu()
 {
-    todo.push(make_pair(x, y));
-    visit[x][y] = visit_flag;
-}
-
-void check_connection(short canoe_len)
-{
-    queue<pair<short, short>> todo;
-    for (short i = 0; i < m; ++i) {
-        if (chizu[0][i] == '#')
-            add_to_visit_queue(todo, 0, i);
-    }
-    while (!todo.empty()) {
-        pair<short, short> top = todo.front();
-        todo.pop();
-        if (chizua[top.first][top.second].n != INF && visit[chizua[top.first][top.second].n][top.second] != visit_flag) {
-            short water_len = top.first - chizua[top.first][top.second].n - 1;
-            if (water_len == 0 || water_len >= canoe_len)
-                add_to_visit_queue(todo, chizua[top.first][top.second].n, top.second);
-        }
-        if (chizua[top.first][top.second].e != INF && visit[top.first][chizua[top.first][top.second].e] != visit_flag) {
-            short water_len = chizua[top.first][top.second].e - top.second - 1;
-            if (water_len == 0 || water_len >= canoe_len)
-                add_to_visit_queue(todo, top.first, chizua[top.first][top.second].e);
-        }
-        if (chizua[top.first][top.second].s != INF && visit[chizua[top.first][top.second].s][top.second] != visit_flag) {
-            short water_len = chizua[top.first][top.second].s - top.first - 1;
-            if (water_len == 0 || water_len >= canoe_len)
-                add_to_visit_queue(todo, chizua[top.first][top.second].s, top.second);
-        }
-        if (chizua[top.first][top.second].w != INF && visit[top.first][chizua[top.first][top.second].w] != visit_flag) {
-            short water_len = top.second - chizua[top.first][top.second].w - 1;
-            if (water_len == 0 || water_len >= canoe_len)
-                add_to_visit_queue(todo, top.first, chizua[top.first][top.second].w);
-        }
-    }
-    for (short i = 0; i < m; ++i) {
-        if (canoe_len_support[i] == -1 && visit[n - 1][i] == visit_flag) {
-            canoe_len_support[i] = canoe_len;
-            --unresolved_count;
-        }
-    }
-    ++visit_flag;
-}
-
-int main()
-{
-    scanf("%hd %hd", &n, &m);
-    for (short i = 0; i < n; ++i)
-        scanf("%s", chizu[i]);
     unresolved_count = m;
-    for (short i = 0; i < m; ++i) {
+    for (int i = 0; i < m; ++i) {
         canoe_len_support[i] = -1;
         if (chizu[n - 1][i] == '.')
             --unresolved_count;
     }
-    calc_access();
-    check_connection(INF);
-    for (short try_len = n < m ? m - 2 : n - 2; unresolved_count > 0 && try_len > 0; --try_len)
-        check_connection(try_len);
-    for (short i = 0; i < m; ++i)
+    if (unresolved_count == 0)
+        return;
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j)
+            dsu_make_set({i, j});
+    int cur_len = edges[0].len;
+    for (int i = 0; i < edges_size; ++i) {
+        if (edges[i].len != cur_len) {
+            query_connectivity(cur_len);
+            if (unresolved_count == 0)
+                return;
+            cur_len = edges[i].len;
+        }
+        dsu_union_sets(edges[i].v1, edges[i].v2);
+    }
+    query_connectivity(cur_len);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < n; ++i)
+        scanf("%s", chizu[i]);
+    find_all_edges();
+    build_and_query_dsu();
+    for (int i = 0; i < m; ++i)
         printf("%d%c", canoe_len_support[i] == INF ? 0 : canoe_len_support[i], i == m - 1 ? '\n' : ' ');
     return 0;
 }

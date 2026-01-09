@@ -1,0 +1,10 @@
+build:
+	@cargo build
+
+clean:
+	@cargo clean
+
+rebuild: clean build
+
+run:
+	@cargo run --quiet < input.txt
